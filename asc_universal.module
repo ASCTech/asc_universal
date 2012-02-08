@@ -1,0 +1,136 @@
+<?php
+// $Id$
+/**
+ * @file
+ * A module that acts as a Universal helper for Arts and Sciences sites.
+ */
+
+// Error reporting ()
+if (variable_get("asc_universal_php_error_reporting", FALSE) == TRUE) {
+  if (variable_get("asc_universal_php_error_strict", FALSE) == TRUE) {
+    error_reporting(E_STRICT);
+  }
+  else {
+    error_reporting(E_ALL);
+  }
+  ini_set('display_errors', TRUE);
+  ini_set('display_startup_errors', TRUE);
+}
+
+/**
+ * Display help and module information
+ * @param path which path of the site we're displaying help
+ * @param arg array that holds the current path as would be returned from arg() function
+ * @return help text for the path
+ */
+function asc_universal_help($path, $arg) {
+  $output = '';  //declare your output variable
+  switch ($path) {
+    case "admin/help#asc_universal":
+      $output = '<p>'.  t("Helper module for Arts and Sciences sites") .'</p>';
+      break;
+  }
+  return $output;
+} // function asc_universal_help
+
+/**
+ *
+ * Implementation of hook_perm().
+ *
+ * Module permissions
+ */
+function asc_universal_perm() {
+  return array('administer asc universal');
+} // function asc_universal_perm()
+
+/**
+ *
+ * Implementation of hook_admin().
+ *
+ * Module settings page
+ */
+function asc_universal_admin() {
+
+  // Declare the form
+  $form = array();
+
+  // Define our global variable
+  $form['asc_universal_menu_limit'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Limit the characters for menu items?'),
+    '#default_value' => variable_get("asc_universal_menu_limit", TRUE),
+    '#description' => t("Optionally limit the number of characters in menu items."),
+    '#required' => TRUE,
+  );
+
+  $form['asc_universal_menu_limit_value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Menu Item Title Limit'),
+    '#default_value' => variable_get("asc_universal_menu_limit_value", '35'),
+    '#size' => 5,
+    '#description' => t("The number of characters to limit title text to."),
+    '#required' => TRUE,
+  );
+
+  // Turn on error reporting
+  $form['asc_universal_php_error_reporting'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('PHP Errors on?'),
+    '#default_value' => variable_get("asc_universal_php_error_reporting", FALSE),
+    '#description' => t("Optionally turn PHP error reporting on for this site."),
+    '#required' => TRUE,
+  );
+
+  // Turn on strict error reporting
+  $form['asc_universal_php_error_strict'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable strict PHP errors?'),
+    '#default_value' => variable_get("asc_universal_php_error_strict", FALSE),
+    '#description' => t("Optionally turn strict (E_STRICT) PHP error reporting on for this site. (default is E_ALL)"),
+    '#required' => TRUE,
+  );
+
+  // Return the form to system settings
+  return system_settings_form($form);
+} // function asc_universal_admin()
+
+/**
+ *
+ * Implementation of hook_menu().
+ *
+ * Menu items for module
+ */
+function asc_universal_menu() {
+
+  // Declare the menu items variable
+  $items = array();
+
+  // Define the admin settings menu item
+  $items['admin/settings/asc_universal'] = array(
+    'title' => 'ASC Universal',
+    'description' => 'Modify the settings for ASC Universal.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('asc_universal_admin'),
+    'access arguments' => array('administer asc universal'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  // Return the menu items
+  return $items;
+} // function asc_universal_menu()
+
+/**
+* Implementation of hook_form_FORMID_alter() for menu_edit_item.
+*/
+function asc_universal_form_menu_edit_item_alter(&$form, &$form_state) {
+  if (variable_get("asc_universal_menu_limit", TRUE) == TRUE) {
+    $form['menu']['link_title'] = array('#type' => 'textfield',
+      '#title' => t('Menu link title'),
+      '#default_value' => $form['menu']['link_title']['#default_value'],
+      '#description' => t('The link text corresponding to this item that should appear in the menu. This field is limited to ' . variable_get("asc_universal_menu_limit_value", '35') . ' characters.'),
+      '#required' => TRUE,
+      '#maxlength' => variable_get("asc_universal_menu_limit_value", '35'),
+    );
+    $form['#submit'][] = 'asc_universal_menu_edit_item_submit';
+  }
+}

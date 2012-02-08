@@ -1,0 +1,5 @@
+; $Id$
+name = ASC Universal Helper
+description = Universal helper module for Arts and Sciences sites
+package = "Arts and Sciences at The Ohio State University Modules"
+core = 6.x
